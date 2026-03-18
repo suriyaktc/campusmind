@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampusMind — AI Campus Assistant</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #07090f;
+  --surface: #0d1120;
+  --surface2: #131928;
+  --surface3: #1a2235;
+  --border: #1e2a40;
+  --border2: #253045;
+  --blue: #5b9cf6;
+  --blue2: #3a7bd5;
+  --blue-glow: rgba(91,156,246,0.15);
+  --purple: #9d6ef8;
+  --purple-glow: rgba(157,110,248,0.12);
+  --green: #3ecf8e;
+  --gold: #f4b942;
+  --red: #f05454;
+  --cyan: #38bdf8;
+  --text: #dde4f2;
+  --text2: #a8b8d8;
+  --muted: #4a5a7a;
+  --white: #ffffff;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* AMBIENT GLOW */
+body::before {
+  content: '';
+  position: fixed;
+  top: -200px; right: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(91,156,246,0.06) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -200px; left: -100px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(157,110,248,0.05) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── HEADER ── */
+header {
+  position: relative;
+  z-index: 10;
+  background: rgba(13,17,32,0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.header-left { display: flex; align-items: center; gap: 14px; }
+
+.logo {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  position: relative;
+  box-shadow: 0 0 20px rgba(91,156,246,0.3), 0 0 40px rgba(157,110,248,0.15);
+}
+
+.logo::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, rgba(91,156,246,0.4), rgba(157,110,248,0.4));
+  z-index: -1;
+  filter: blur(4px);
+}
+
+.brand-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--white), var(--blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-sub { font-size: 11px; color: var(--muted); letter-spacing: 0.05em; }
+
+.header-center {
+  display: flex;
+  gap: 4px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.nav-tab {
+  padding: 6px 16px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+  border: none;
+  background: none;
+}
+
+.nav-tab.active {
+  background: linear-gradient(135deg, rgba(91,156,246,0.2), rgba(157,110,248,0.2));
+  color: var(--blue);
+  border: 1px solid rgba(91,156,246,0.25);
+}
+
+.nav-tab:hover:not(.active) { color: var(--text2); background: var(--surface3); }
+
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+.online-pill {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(62,207,142,0.08);
+  border: 1px solid rgba(62,207,142,0.2);
+  color: var(--green);
+  font-size: 11px; font-weight: 600;
+  padding: 5px 12px; border-radius: 99px;
+  letter-spacing: 0.04em;
+}
+
+.pulse {
+  width: 7px; height: 7px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+  box-shadow: 0 0 6px var(--green);
+}
+
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.75); }
+}
+
+.icon-btn {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+
+.icon-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-glow); }
+
+/* ── QUICK BAR ── */
+.quick-bar {
+  position: relative; z-index: 9;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 28px;
+  display: flex; gap: 7px; flex-wrap: nowrap;
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.quick-bar::-webkit-scrollbar { display: none; }
+
+.qchip {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  padding: 5px 13px;
+  border-radius: 99px;
+  font-size: 11.5px; font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.qchip:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: var(--blue-glow);
+  transform: translateY(-1px);
+}
+
+/* ── LAYOUT ── */
+.layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 260px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+.sb-section {
+  padding: 18px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sb-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.sb-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* TIMETABLE */
+.tt-inputs { display: flex; flex-direction: column; gap: 6px; }
+
+.tt-input {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 9px;
+  padding: 8px 11px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.tt-input:focus { border-color: var(--blue); background: rgba(91,156,246,0.04); }
+.tt-input::placeholder { color: var(--muted); }
+
+.tt-add-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  color: white;
+  border: none;
+  border-radius: 9px;
+  padding: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  margin-top: 2px;
+  transition: all 0.2s;
+  letter-spacing: 0.03em;
+}
+
+.tt-add-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(91,156,246,0.25); }
+
+.classes-wrap { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+
+.class-card {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-left: 3px solid var(--blue);
+  border-radius: 9px;
+  padding: 9px 11px;
+  animation: fadeIn 0.3s ease both;
+}
+
+.cc-name { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.cc-time { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.cc-room { font-size: 10px; color: var(--blue); margin-top: 2px; }
+
+/* SUBJECTS */
+.subj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+
+.subj-card {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 10px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.subj-card:hover {
+  border-color: var(--purple);
+  background: var(--purple-glow);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(157,110,248,0.15);
+}
+
+.subj-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+.subj-name { font-size: 11px; font-weight: 600; color: var(--text2); }
+
+/* STATS */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+
+.stat-card {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+}
+
+.stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.stat-lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+/* ── CHAT AREA ── */
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.messages::-webkit-scrollbar { width: 3px; }
+.messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* WELCOME */
+.welcome {
+  background: linear-gradient(135deg, rgba(91,156,246,0.06), rgba(157,110,248,0.06));
+  border: 1px solid rgba(91,156,246,0.15);
+  border-radius: 20px;
+  padding: 32px;
+  text-align: center;
+  animation: fadeIn 0.6s ease both;
+}
+
+.w-logo {
+  width: 72px; height: 72px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+  margin: 0 auto 16px;
+  box-shadow: 0 0 40px rgba(91,156,246,0.2), 0 0 80px rgba(157,110,248,0.1);
+}
+
+.w-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+  background: linear-gradient(135deg, var(--white), var(--blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.w-sub { font-size: 14px; color: var(--text2); line-height: 1.6; max-width: 420px; margin: 0 auto 20px; }
+
+.w-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+
+.w-chip {
+  background: rgba(91,156,246,0.08);
+  border: 1px solid rgba(91,156,246,0.2);
+  color: var(--blue);
+  font-size: 12px; font-weight: 500;
+  padding: 7px 15px; border-radius: 99px;
+  cursor: pointer; transition: all 0.2s;
+}
+
+.w-chip:hover { background: rgba(91,156,246,0.16); transform: translateY(-1px); }
+
+/* MESSAGES */
+.msg { display: flex; gap: 12px; animation: fadeIn 0.35s ease both; }
+.msg.user { flex-direction: row-reverse; }
+
+.av {
+  width: 36px; height: 36px;
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.av.ai {
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  box-shadow: 0 0 16px rgba(91,156,246,0.25);
+}
+
+.av.user {
+  background: linear-gradient(135deg, var(--gold), #d97706);
+  box-shadow: 0 0 16px rgba(244,185,66,0.2);
+}
+
+.bubble {
+  max-width: 68%;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 18px;
+  border-top-left-radius: 6px;
+  padding: 13px 16px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text);
+  position: relative;
+}
+
+.msg.user .bubble {
+  background: linear-gradient(135deg, rgba(91,156,246,0.12), rgba(157,110,248,0.12));
+  border-color: rgba(91,156,246,0.22);
+  border-top-left-radius: 18px;
+  border-top-right-radius: 6px;
+}
+
+.bubble-footer {
+  display: flex; gap: 6px;
+  margin-top: 10px; flex-wrap: wrap;
+}
+
+.bfbtn {
+  background: rgba(91,156,246,0.06);
+  border: 1px solid rgba(91,156,246,0.15);
+  color: var(--muted);
+  font-size: 11px; font-weight: 500;
+  padding: 3px 10px; border-radius: 99px;
+  cursor: pointer; transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; gap: 4px;
+}
+
+.bfbtn:hover { color: var(--blue); border-color: rgba(91,156,246,0.3); background: rgba(91,156,246,0.1); }
+.bfbtn.speaking { color: var(--green); border-color: rgba(62,207,142,0.3); background: rgba(62,207,142,0.08); }
+
+/* TYPING */
+.typing-bubble {
+  display: flex; align-items: center; gap: 5px;
+  padding: 14px 18px;
+}
+
+.typing-bubble span {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+  animation: typebounce 1.2s infinite;
+}
+
+.typing-bubble span:nth-child(2) { animation-delay: 0.15s; }
+.typing-bubble span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes typebounce {
+  0%,80%,100% { transform: scale(0.7); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* ── INPUT BAR ── */
+.input-bar {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 14px 28px 18px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.input-bar::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(91,156,246,0.3), transparent);
+}
+
+.input-outer {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 11px 14px;
+  transition: all 0.25s;
+  position: relative;
+}
+
+.input-outer:focus-within {
+  border-color: rgba(91,156,246,0.4);
+  background: rgba(91,156,246,0.03);
+  box-shadow: 0 0 0 3px rgba(91,156,246,0.06);
+}
+
+#chat-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  resize: none;
+  max-height: 120px;
+  line-height: 1.55;
+  padding: 0;
+}
+
+#chat-input::placeholder { color: var(--muted); }
+
+.voice-btn {
+  background: none; border: none;
+  color: var(--muted); font-size: 18px;
+  cursor: pointer; transition: all 0.2s;
+  padding: 2px 0; line-height: 1;
+}
+
+.voice-btn:hover { color: var(--blue); transform: scale(1.1); }
+.voice-btn.listening { color: var(--red); animation: pulse 0.8s infinite; }
+
+.send-btn {
+  width: 48px; height: 48px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  border: none; border-radius: 14px;
+  color: white; font-size: 17px;
+  cursor: pointer; transition: all 0.25s;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 20px rgba(91,156,246,0.3);
+  position: relative;
+}
+
+.send-btn::after {
+  content: '';
+  position: absolute; inset: -1px;
+  border-radius: 15px;
+  background: linear-gradient(135deg, rgba(91,156,246,0.3), rgba(157,110,248,0.3));
+  z-index: -1; filter: blur(6px);
+}
+
+.send-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(91,156,246,0.4); }
+.send-btn:disabled { opacity: 0.5; transform: none; cursor: not-allowed; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .header-center { display: none; }
+  .messages { padding: 16px; }
+  .input-bar { padding: 12px 16px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-left">
+    <div class="logo">🧠</div>
+    <div>
+      <div class="brand-name">CampusMind</div>
+      <div class="brand-sub">AI Campus Assistant</div>
+    </div>
+  </div>
+
+  <div class="header-center">
+    <button class="nav-tab active">💬 Chat</button>
+    <button class="nav-tab" onclick="quickAsk('Show me my timetable and give study tips for today')">📅 Schedule</button>
+    <button class="nav-tab" onclick="quickAsk('Give me top 5 career tips for engineering students')">🎯 Career</button>
+    <button class="nav-tab" onclick="quickAsk('Give me a complete study plan for exam preparation')">📚 Study</button>
+  </div>
+
+  <div class="header-right">
+    <div class="online-pill"><div class="pulse"></div>AI Online</div>
+    <button class="icon-btn" onclick="clearChat()" title="Clear Chat">🗑</button>
+  </div>
+</header>
+
+<!-- QUICK BAR -->
+<div class="quick-bar">
+  <div class="qchip" onclick="quickAsk('Explain Newton\'s laws with real examples')">⚡ Newton\'s Laws</div>
+  <div class="qchip" onclick="quickAsk('Best study techniques for exams')">📚 Study Tips</div>
+  <div class="qchip" onclick="quickAsk('Explain machine learning simply')">🤖 Machine Learning</div>
+  <div class="qchip" onclick="quickAsk('How to write a research paper?')">📝 Research Paper</div>
+  <div class="qchip" onclick="quickAsk('Explain Big O notation in algorithms')">💻 Big O Notation</div>
+  <div class="qchip" onclick="quickAsk('Career paths after computer science degree')">🎯 CS Careers</div>
+  <div class="qchip" onclick="quickAsk('Give me a motivational quote for students')">💪 Motivation</div>
+  <div class="qchip" onclick="quickAsk('Explain derivatives in calculus with examples')">📐 Calculus</div>
+  <div class="qchip" onclick="quickAsk('How does the internet actually work?')">🌐 Internet</div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <div class="sb-section">
+      <div class="sb-label">📅 Timetable</div>
+      <div class="tt-inputs">
+        <input class="tt-input" id="cls-name" placeholder="Subject name" />
+        <input class="tt-input" id="cls-time" placeholder="Time (e.g. 9:00 AM)" />
+        <input class="tt-input" id="cls-room" placeholder="Room / Online" />
+        <button class="tt-add-btn" onclick="addClass()">+ Add Class</button>
+      </div>
+      <div class="classes-wrap" id="classes-wrap"></div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label">📖 Subjects</div>
+      <div class="subj-grid">
+        <div class="subj-card" onclick="quickAsk('Help me understand a key Mathematics concept')">
+          <span class="subj-icon">📐</span><span class="subj-name">Maths</span>
+        </div>
+        <div class="subj-card" onclick="quickAsk('Help me understand a key Physics concept')">
+          <span class="subj-icon">⚛️</span><span class="subj-name">Physics</span>
+        </div>
+        <div class="subj-card" onclick="quickAsk('Help me understand a key Chemistry concept')">
+          <span class="subj-icon">🧪</span><span class="subj-name">Chemistry</span>
+        </div>
+        <div class="subj-card" onclick="quickAsk('Help me understand a key Computer Science concept')">
+          <span class="subj-icon">💻</span><span class="subj-name">CS / IT</span>
+        </div>
+        <div class="subj-card" onclick="quickAsk('Help me with English writing and grammar')">
+          <span class="subj-icon">✍️</span><span class="subj-name">English</span>
+        </div>
+        <div class="subj-card" onclick="quickAsk('Explain a key Economics concept simply')">
+          <span class="subj-icon">📊</span><span class="subj-name">Economics</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label">📊 Session Stats</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-num" id="msg-count">0</div>
+          <div class="stat-lbl">Messages</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="class-count">0</div>
+          <div class="stat-lbl">Classes</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-label">💡 Pro Tips</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:9px;padding:10px;font-size:11.5px;color:var(--text2);line-height:1.6">
+          🌅 <b>Morning hours</b> are best for complex topics — your brain is freshest!
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:9px;padding:10px;font-size:11.5px;color:var(--text2);line-height:1.6">
+          🎯 Use the <b>Pomodoro technique</b> — 25 min study, 5 min break.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CHAT -->
+  <div class="chat-area">
+    <div class="messages" id="messages">
+      <div class="welcome">
+        <div class="w-logo">🧠</div>
+        <div class="w-title">Welcome to CampusMind</div>
+        <div class="w-sub">Your AI-powered campus companion. Ask doubts, get study help, manage your timetable, and boost your academic performance!</div>
+        <div class="w-chips">
+          <div class="w-chip" onclick="quickAsk('What can you help me with?')">✨ What can you do?</div>
+          <div class="w-chip" onclick="quickAsk('Give me a complete exam preparation strategy')">📚 Exam Strategy</div>
+          <div class="w-chip" onclick="quickAsk('Explain artificial intelligence in simple terms')">🤖 Explain AI</div>
+          <div class="w-chip" onclick="quickAsk('How should I manage my time as a student?')">⏰ Time Management</div>
+          <div class="w-chip" onclick="quickAsk('What are the best programming languages to learn in 2026?')">💻 Learn to Code</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-bar">
+      <div class="input-outer">
+        <textarea id="chat-input" placeholder="Ask anything — subjects, doubts, career tips, campus life..." rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="voice-btn" id="voice-btn" onclick="startVoice()" title="Voice Input">🎙️</button>
+      </div>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── TIMETABLE ──
+let classes = JSON.parse(localStorage.getItem('cm_classes') || '[]');
+let msgCount = 0;
+
+function renderClasses() {
+  const wrap = document.getElementById('classes-wrap');
+  document.getElementById('class-count').textContent = classes.length;
+  wrap.innerHTML = classes.map(c => `
+    <div class="class-card">
+      <div class="cc-name">${c.name}</div>
+      <div class="cc-time">⏰ ${c.time}</div>
+      <div class="cc-room">📍 ${c.room}</div>
+    </div>
+  `).join('');
+}
+
+function addClass() {
+  const name = document.getElementById('cls-name').value.trim();
+  const time = document.getElementById('cls-time').value.trim();
+  const room = document.getElementById('cls-room').value.trim() || 'TBD';
+  if (!name || !time) return;
+  classes.push({ name, time, room });
+  localStorage.setItem('cm_classes', JSON.stringify(classes));
+  renderClasses();
+  ['cls-name','cls-time','cls-room'].forEach(id => document.getElementById(id).value = '');
+}
+
+renderClasses();
+
+// ── CHAT ──
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function quickAsk(text) {
+  document.getElementById('chat-input').value = text;
+  sendMessage();
+}
+
+function addMsg(role, text) {
+  const msgs = document.getElementById('messages');
+  msgCount++;
+  document.getElementById('msg-count').textContent = msgCount;
+
+  const el = document.createElement('div');
+  el.className = `msg ${role}`;
+
+  const av = role === 'ai'
+    ? `<div class="av ai">🧠</div>`
+    : `<div class="av user">👤</div>`;
+
+  const safeText = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const rawText = text.replace(/`/g,"'");
+
+  const footer = role === 'ai' ? `
+    <div class="bubble-footer">
+      <button class="bfbtn" onclick="speakText(this,\`${rawText}\`)">🔊 Speak</button>
+      <button class="bfbtn" onclick="copyText(\`${rawText}\`)">📋 Copy</button>
+    </div>` : '';
+
+  el.innerHTML = `${av}<div class="bubble">${safeText.replace(/\n/g,'<br>')}${footer}</div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addTyping() {
+  const msgs = document.getElementById('messages');
+  const el = document.createElement('div');
+  el.className = 'msg ai'; el.id = 'typing';
+  el.innerHTML = `<div class="av ai">🧠</div><div class="bubble"><div class="typing-bubble"><span></span><span></span><span></span></div></div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+async function sendMessage() {
+  const inp = document.getElementById('chat-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = ''; inp.style.height = 'auto';
+  document.getElementById('send-btn').disabled = true;
+  addMsg('user', text);
+  addTyping();
+  try {
+    const res = await fetch('/chat', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({message: text})
+    });
+    const data = await res.json();
+    removeTyping();
+    addMsg('ai', data.success ? data.reply : '⚠️ Something went wrong. Please try again.');
+  } catch(e) {
+    removeTyping();
+    addMsg('ai', '⚠️ Connection error. Make sure the server is running.');
+  }
+  document.getElementById('send-btn').disabled = false;
+}
+
+// ── VOICE OUTPUT ──
+let currentAudio = null;
+
+async function speakText(btn, text) {
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  if (btn.classList.contains('speaking')) {
+    btn.classList.remove('speaking'); btn.textContent = '🔊 Speak'; return;
+  }
+  btn.textContent = '⏳ Loading...';
+  try {
+    const res = await fetch('/speak', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({text})
+    });
+    const blob = await res.blob();
+    currentAudio = new Audio(URL.createObjectURL(blob));
+    currentAudio.play();
+    btn.classList.add('speaking'); btn.textContent = '⏸ Pause';
+    currentAudio.onended = () => { btn.classList.remove('speaking'); btn.textContent = '🔊 Speak'; currentAudio = null; };
+  } catch(e) { btn.textContent = '🔊 Speak'; }
+}
+
+function copyText(text) { navigator.clipboard.writeText(text); }
+
+// ── VOICE INPUT ──
+let recognition = null;
+
+function startVoice() {
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    alert('Voice input needs Chrome browser!'); return;
+  }
+  const btn = document.getElementById('voice-btn');
+  if (recognition) { recognition.stop(); recognition = null; btn.classList.remove('listening'); btn.textContent = '🎙️'; return; }
+  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = 'en-US'; recognition.continuous = false;
+  btn.classList.add('listening'); btn.textContent = '🔴';
+  recognition.onresult = e => {
+    document.getElementById('chat-input').value = e.results[0][0].transcript;
+    btn.classList.remove('listening'); btn.textContent = '🎙️'; recognition = null;
+    sendMessage();
+  };
+  recognition.onerror = () => { btn.classList.remove('listening'); btn.textContent = '🎙️'; recognition = null; };
+  recognition.start();
+}
+
+// ── CLEAR ──
+async function clearChat() {
+  await fetch('/clear', {method:'POST'});
+  msgCount = 0; document.getElementById('msg-count').textContent = 0;
+  document.getElementById('messages').innerHTML = `
+    <div class="welcome">
+      <div class="w-logo">🧠</div>
+      <div class="w-title">Fresh Start!</div>
+      <div class="w-sub">Chat cleared. Ready to help you again!</div>
+      <div class="w-chips">
+        <div class="w-chip" onclick="quickAsk('Give me study tips for today')">📚 Study Tips</div>
+        <div class="w-chip" onclick="quickAsk('Motivate me to study hard')">💪 Motivate Me</div>
+      </div>
+    </div>`;
+}
+</script>
+</body>
+</html>
