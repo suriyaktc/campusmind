@@ -694,7 +694,7 @@ export default function CampusMindImport() {
             <input
               className="api-key-input"
               type="password"
-              placeholder="gsk_..."
+              placeholder="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"
               value={apiKey}
               onChange={e => setApiKey(e.target.value)}
             />
